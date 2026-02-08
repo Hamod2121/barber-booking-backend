@@ -18,7 +18,9 @@ app.use(express.json());
 // ===== Database =====
 const path = require("path");
 
-const DB_PATH = process.env.DB_PATH || path.join(__dirname, "bookings.db");
+const DB_PATH =
+  process.env.SQLITE_DB_PATH || path.join(__dirname, "bookings.db");
+
 const db = new sqlite3.Database(DB_PATH);
 
 
