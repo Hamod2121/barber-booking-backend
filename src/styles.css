@@ -1,0 +1,297 @@
+:root{
+  --bg:#b20f58d4;
+  --card:rgba(55, 53, 54, 0.927);
+  --border:rgba(21, 16, 16, 0.927);
+  --text:#b60b0b;;
+  --muted:rgba(229,231,235,.7);
+  --btn:#ffffff;
+  --btnText:#b60b0b;
+}
+
+*{box-sizing:border-box}
+
+/* ===== SUPER Animated Background ===== */
+body{
+  margin:0;
+  direction:rtl;
+  text-align:right;
+  font-family:Arial, sans-serif;
+  color:var(--text);
+
+  /* أقوى: ألوان أكثر + سرعة أعلى */
+  background: linear-gradient(
+    -45deg,
+  #4b0202,
+    #3c0b0b,
+    #111827,
+   
+    
+    #020617
+  );
+  background-size: 600% 600%;
+  animation: bgMove 7s linear infinite;
+
+  min-height:100vh;
+  overflow-x:hidden;
+}
+
+/* Blobs قوية */
+body::before,
+body::after{
+  content:"";
+  position:fixed;
+  inset:-10%;
+  z-index:-1;
+  pointer-events:none;
+}
+
+body::before{
+  background:
+    radial-gradient(circle at 15% 25%, rgba(250, 246, 246, 0.342), transparent 40%),
+    radial-gradient(circle at 85% 30%, rgba(250, 246, 246, 0.342), transparent 45%),
+    radial-gradient(circle at 45% 85%, rgba(250, 246, 246, 0.342), transparent 50%);
+  filter: blur(30px);
+  animation: blobs 6s ease-in-out infinite alternate;
+}
+
+body::after{
+  background:
+    radial-gradient(circle at 70% 75%, rgba(255,255,255,.12), transparent 45%),
+    radial-gradient(circle at 25% 60%, rgba(255,255,255,.10), transparent 50%);
+  filter: blur(45px);
+  animation: blobs2 9s ease-in-out infinite alternate;
+}
+
+@keyframes bgMove{
+  0%{background-position:0% 50%}
+  50%{background-position:100% 50%}
+  100%{background-position:0% 50%}
+}
+
+@keyframes blobs{
+  0%{transform:translate(-40px,-30px) scale(1)}
+  50%{transform:translate(60px,-50px) scale(1.15)}
+  100%{transform:translate(-20px,40px) scale(1.08)}
+}
+
+@keyframes blobs2{
+  0%{transform:translate(50px,20px) scale(1)}
+  50%{transform:translate(-70px,40px) scale(1.18)}
+  100%{transform:translate(30px,-50px) scale(1.1)}
+}
+
+a{color:inherit;text-decoration:none}
+
+/* ===== Navbar ===== */
+.navWrap{
+  position:sticky; top:0; z-index:10;
+  backdrop-filter: blur(12px);
+  background: rgba(55, 53, 53, 0.927);
+  border-bottom:1px solid var(--border);
+}
+.navInner{
+  max-width:900px;
+  margin:0 auto;
+  padding:14px 16px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+.brand{font-weight:900; letter-spacing:.5px}
+.navLinks{display:flex; gap:10px}
+.navLinks a{
+  color:var(--muted);
+  padding:8px 10px;
+  border-radius:10px;
+}
+.navLinks a.active{
+  color:var(--text);
+  background: rgba(248, 245, 245, 0.071);
+}
+
+/* ===== Page ===== */
+.page{max-width:900px; margin:24px auto; padding:0 16px}
+
+.box{
+  border:1px solid var(--border);
+  background: var(--card);
+  border-radius:16px;
+  padding:16px;
+}
+
+.title{margin:0 0 10px}
+.muted{color:var(--muted)}
+
+/* ===== Grid & Card ===== */
+.grid{
+  display:grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap:12px;
+  margin-top:12px;
+}
+.card{
+  border:1px solid var(--border);
+  background: var(--card);
+  border-radius:16px;
+  padding:14px;
+}
+.card h3{margin:0 0 8px}
+.row{display:flex; justify-content:space-between; margin:10px 0}
+
+/* ===== Form ===== */
+.form{display:grid; gap:12px; margin-top:12px; max-width:420px}
+label{display:grid; gap:6px; color:var(--muted); font-size:14px}
+input{
+  width:100%;
+  padding:10px 12px;
+  border-radius:12px;
+  border:1px solid var(--border);
+  background: rgba(0,0,0,.35);
+  color:var(--text);
+  outline:none;
+}
+.two{display:grid; grid-template-columns:1fr 1fr; gap:12px}
+.notice{
+  margin:12px 0;
+  padding:12px;
+  border:1px dashed var(--border);
+  border-radius:14px;
+  background: rgba(255,255,255,.06);
+}
+
+/* ===== Button ===== */
+.btn{
+  width:100%;
+  padding:10px 14px;
+  border:0;
+  border-radius:12px;
+  background: var(--btn);
+  color: var(--btnText);
+  font-weight:900;
+  cursor:pointer;
+}
+.btn:disabled{opacity:.5; cursor:not-allowed}
+
+/* ===== input with icon ===== */
+.inputIcon{position:relative}
+.inputIcon input{width:100%; padding-right:44px}
+.inputIcon .icon{
+  position:absolute;
+  left:14px;
+  top:50%;
+  transform:translateY(-50%);
+  font-size:18px;
+  color:#fff;
+  pointer-events:none;
+}
+/* يخلي كل محتوى الكارد بالنص */
+.box{
+  text-align: center;
+  width: 100%;
+  max-width: 1100px;   /* زود العرض */
+  margin: 0 auto;
+  padding: 40px 28px;  /* يخلي الكارد أطول */
+}
+
+/* العنوان بالنص وواضح */
+.title{
+  text-align: center;
+  font-size: 56px;
+  font-weight: 900;
+  margin: 0 0 12px;
+}
+
+/* الوصف تحت العنوان بالنص */
+.box .muted{
+  text-align: center;
+  font-size: 18px;
+  margin-bottom: 24px;
+}
+
+/* زر ابدأ الآن نفس عرض الكارد تقريباً */
+.box .btn{
+  width: 100%;
+  max-width: 900px;   /* عشان ما يصير أطول من اللازم */
+  margin: 0 auto;
+}
+/* ===== Hero Title (Logo + Text) ===== */
+.hero {
+  text-align: center;
+}
+
+.heroTitle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px; /* مسافة بين اللوقو والكلمة */
+  margin-bottom: 12px;
+}
+
+.heroLogo {
+  width: 64px;   /* تحكم بحجم اللوقو */
+  height: auto;
+}
+
+.heroBtn {
+  margin-top: 20px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 700px;
+}
+
+.table th,
+.table td {
+  padding: 10px;
+  border-bottom: 1px solid rgba(255,255,255,0.12);
+  text-align: right;
+  color: #e5e7eb;
+}
+
+.table th {
+  color: rgba(229,231,235,.8);
+  font-weight: 800;
+}
+.rowTop{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:12px;
+  flex-wrap:wrap;
+}
+.rowBtns{
+  display:flex;
+  gap:10px;
+}
+
+.table{
+  width:100%;
+  border-collapse:collapse;
+  min-width: 780px;
+}
+.table th,.table td{
+  padding:10px;
+  border-bottom:1px solid rgba(255,255,255,0.12);
+  text-align:right;
+  color: var(--text);
+}
+.table th{
+  color: var(--muted);
+  font-weight:900;
+}
+
+.btnDanger{
+  background:#ef4444;
+  color:#fff;
+  width:auto;
+  padding:8px 12px;
+  border-radius:10px;
+}
+
+.btnGhost{
+  background: rgba(255,255,255,.12);
+  color: var(--text);
+}
