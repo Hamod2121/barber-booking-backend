@@ -1,4 +1,4 @@
-require("dotenv").config(); // أول سطر (للـ local فقط)
+require("dotenv").config();
 
 const express = require("express");
 const cors = require("cors");
@@ -7,8 +7,35 @@ const fs = require("fs");
 const path = require("path");
 
 const app = express();
-app.use(cors());
+
+// ✅ Origins المسموح بها (محلي)
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://127.0.0.1:5173",
+];
+
+// ✅ CORS config (يعالج preflight)
+const corsOptions = {
+  origin: (origin, cb) => {
+    // يسمح للطلبات بدون origin (Postman / curl)
+    if (!origin) return cb(null, true);
+
+    // يسمح للمحلي فقط
+    if (allowedOrigins.includes(origin)) return cb(null, true);
+
+    return cb(null, false); // لا ترمي Error عشان ما يكسر preflight
+  },
+  methods: ["GET", "POST", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "x-admin-key"],
+  optionsSuccessStatus: 200, // مهم لبعض المتصفحات/الهوست
+};
+
+// ✅ لازم تكون قبل الراوتات
+app.use(cors(corsOptions));
 app.use(express.json());
+
+// ✅ رد صريح على كل OPTIONS (preflight)
+app.options("*", cors(corsOptions));
 
 // ✅ Railway يعطيك PORT جاهز
 const PORT = process.env.PORT || 5000;
@@ -20,7 +47,7 @@ if (!ADMIN_KEY) throw new Error("Missing ADMIN_KEY in environment variables");
 // ✅ DB Path (على Railway نستخدم Volume)
 const DB_PATH = process.env.SQLITE_DB_PATH || "./bookings.db";
 
-// تأكد إن مجلد /data موجود (للوكال + الرايلوي)
+// تأكد إن مجلد قاعدة البيانات موجود
 const dir = path.dirname(DB_PATH);
 if (dir && dir !== "." && !fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 
@@ -49,6 +76,7 @@ app.get("/", (req, res) => res.send("Backend is running ✅ Try /bookings"));
 
 app.post("/bookings", (req, res) => {
   const { name, phone, service, date, time } = req.body;
+
   db.run(
     "INSERT INTO bookings (name, phone, service, date, time) VALUES (?,?,?,?,?)",
     [name, phone, service, date, time],
