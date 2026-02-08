@@ -14,31 +14,23 @@ const allowedOrigins = [
   "http://127.0.0.1:5173",
 ];
 
-// ✅ CORS config (يعالج preflight)
 const corsOptions = {
   origin: (origin, cb) => {
-    // يسمح للطلبات بدون origin (Postman / curl)
     if (!origin) return cb(null, true);
-
-    // يسمح للمحلي فقط
     if (allowedOrigins.includes(origin)) return cb(null, true);
-
-    return cb(null, false); // لا ترمي Error عشان ما يكسر preflight
+    return cb(null, false);
   },
   methods: ["GET", "POST", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "x-admin-key"],
-  optionsSuccessStatus: 200, // مهم لبعض المتصفحات/الهوست
+  optionsSuccessStatus: 200,
 };
 
-// ✅ لازم تكون قبل الراوتات
 app.use(cors(corsOptions));
 app.use(express.json());
 
-// ✅ رد صريح على كل OPTIONS (preflight)
-app.options("*", cors(corsOptions));
+// ✅ هنا التعديل
+app.options("/*", cors(corsOptions)); // أو app.options(/.*/, cors(corsOptions));
 
-// ✅ Railway يعطيك PORT جاهز
-const PORT = process.env.PORT || 5000;
 
 // ✅ Admin Key من variables
 const ADMIN_KEY = process.env.ADMIN_KEY;
