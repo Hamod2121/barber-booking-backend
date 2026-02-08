@@ -55,19 +55,32 @@ const dir = path.dirname(DB_PATH);
 if (dir && dir !== "." && !fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 
 // Database
-const db = new sqlite3.Database(DB_PATH);
+let db = null;
+try {
+  db = new sqlite3.Database(DB_PATH);
+  console.log("DB opened:", DB_PATH);
 
-// Create table
-db.run(`
-  CREATE TABLE IF NOT EXISTS bookings (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT,
-    phone TEXT,
-    service TEXT,
-    date TEXT,
-    time TEXT
-  )
-`);
+  // Create table (لا تشغلها إلا إذا db موجودة)
+  db.run(`
+    CREATE TABLE IF NOT EXISTS bookings (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT,
+      phone TEXT,
+      service TEXT,
+      date TEXT,
+      time TEXT
+    )
+  `);
+} catch (e) {
+  console.error("DB OPEN/INIT FAILED:", e);
+  db = null;
+}
+
+// ✅ Middleware: يمنع انهيار السيرفر لو DB مو شغالة
+function requireDb(req, res, next) {
+  if (!db) return res.status(500).json({ message: "DB not available" });
+  next();
+}
 
 function requireAdmin(req, res, next) {
   const key = req.headers["x-admin-key"];
@@ -77,7 +90,7 @@ function requireAdmin(req, res, next) {
 
 app.get("/", (req, res) => res.send("Backend is running ✅ Try /bookings"));
 
-app.post("/bookings", (req, res) => {
+app.post("/bookings", requireDb, (req, res) => {
   const { name, phone, service, date, time } = req.body;
 
   db.run(
@@ -90,14 +103,14 @@ app.post("/bookings", (req, res) => {
   );
 });
 
-app.get("/bookings", requireAdmin, (req, res) => {
+app.get("/bookings", requireAdmin, requireDb, (req, res) => {
   db.all("SELECT * FROM bookings ORDER BY id DESC", (err, rows) => {
     if (err) return res.status(500).json({ message: "DB error" });
     res.json(rows);
   });
 });
 
-app.delete("/bookings/:id", requireAdmin, (req, res) => {
+app.delete("/bookings/:id", requireAdmin, requireDb, (req, res) => {
   db.run("DELETE FROM bookings WHERE id = ?", [req.params.id], function (err) {
     if (err) return res.status(500).json({ message: "DB error" });
     if (this.changes === 0) return res.status(404).json({ message: "Booking not found" });
