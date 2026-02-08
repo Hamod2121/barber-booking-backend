@@ -1,5 +1,10 @@
 // لازم أول سطر
-require("dotenv").config();
+// حمّل dotenv فقط في الجهاز (Local)
+if (process.env.NODE_ENV !== "production") {
+  require("dotenv").config();
+}
+
+
 
 const express = require("express");
 const cors = require("cors");
