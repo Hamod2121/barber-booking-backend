@@ -1,4 +1,7 @@
-require("dotenv").config();
+// dotenv للّوكال فقط (Railway يقرأ Variables مباشرة)
+if (process.env.NODE_ENV !== "production") {
+  require("dotenv").config();
+}
 
 const express = require("express");
 const cors = require("cors");
@@ -8,16 +11,25 @@ const path = require("path");
 
 const app = express();
 
+// ✅ Railway يعطيك PORT
+const PORT = process.env.PORT || 5000;
+
 // ✅ Origins المسموح بها (محلي)
 const allowedOrigins = [
   "http://localhost:5173",
   "http://127.0.0.1:5173",
+  "http://localhost:5174",
+  "http://127.0.0.1:5174",
 ];
 
 const corsOptions = {
   origin: (origin, cb) => {
+    // يسمح للطلبات بدون origin (مثل Postman / health checks)
     if (!origin) return cb(null, true);
+
     if (allowedOrigins.includes(origin)) return cb(null, true);
+
+    // رفض بدل ما يطيّح السيرفر
     return cb(null, false);
   },
   methods: ["GET", "POST", "DELETE", "OPTIONS"],
@@ -28,15 +40,14 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 
-// ✅ هنا التعديل
-app.options("/*", cors(corsOptions)); // أو app.options(/.*/, cors(corsOptions));
-
+// ✅ preflight لكل المسارات (تجنب مشكلة "*")
+app.options(/.*/, cors(corsOptions));
 
 // ✅ Admin Key من variables
 const ADMIN_KEY = process.env.ADMIN_KEY;
 if (!ADMIN_KEY) throw new Error("Missing ADMIN_KEY in environment variables");
 
-// ✅ DB Path (على Railway نستخدم Volume)
+// ✅ DB Path (على Railway تقدر تستخدم Volume)
 const DB_PATH = process.env.SQLITE_DB_PATH || "./bookings.db";
 
 // تأكد إن مجلد قاعدة البيانات موجود
