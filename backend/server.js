@@ -1,33 +1,31 @@
-// لازم أول سطر
-// حمّل dotenv فقط في الجهاز (Local)
-if (process.env.NODE_ENV !== "production") {
-  require("dotenv").config();
-}
-
-
+require("dotenv").config(); // أول سطر (للـ local فقط)
 
 const express = require("express");
 const cors = require("cors");
 const sqlite3 = require("sqlite3").verbose();
-
-// ===== Admin Key (من env) =====
-const ADMIN_KEY = process.env.ADMIN_KEY;
-if (!ADMIN_KEY) {
-  throw new Error("Missing ADMIN_KEY in environment variables");
-}
+const fs = require("fs");
+const path = require("path");
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// ===== Database =====
-const path = require("path");
+// ✅ Railway يعطيك PORT جاهز
+const PORT = process.env.PORT || 5000;
 
-const DB_PATH =
-  process.env.SQLITE_DB_PATH || path.join(__dirname, "bookings.db");
+// ✅ Admin Key من variables
+const ADMIN_KEY = process.env.ADMIN_KEY;
+if (!ADMIN_KEY) throw new Error("Missing ADMIN_KEY in environment variables");
 
+// ✅ DB Path (على Railway نستخدم Volume)
+const DB_PATH = process.env.SQLITE_DB_PATH || "./bookings.db";
+
+// تأكد إن مجلد /data موجود (للوكال + الرايلوي)
+const dir = path.dirname(DB_PATH);
+if (dir && dir !== "." && !fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+
+// Database
 const db = new sqlite3.Database(DB_PATH);
-
 
 // Create table
 db.run(`
@@ -41,20 +39,16 @@ db.run(`
   )
 `);
 
-// ===== Logger (بدون طباعة الرمز) =====
-app.use((req, res, next) => {
-  console.log("REQ:", req.method, req.url);
+function requireAdmin(req, res, next) {
+  const key = req.headers["x-admin-key"];
+  if (key !== ADMIN_KEY) return res.status(401).json({ message: "Unauthorized" });
   next();
-});
+}
 
-app.get("/", (req, res) => {
-  res.send("Backend is running ✅ Try /bookings");
-});
+app.get("/", (req, res) => res.send("Backend is running ✅ Try /bookings"));
 
-// ===== Save booking (Public) =====
 app.post("/bookings", (req, res) => {
   const { name, phone, service, date, time } = req.body;
-
   db.run(
     "INSERT INTO bookings (name, phone, service, date, time) VALUES (?,?,?,?,?)",
     [name, phone, service, date, time],
@@ -65,16 +59,6 @@ app.post("/bookings", (req, res) => {
   );
 });
 
-// ===== Admin Middleware =====
-function requireAdmin(req, res, next) {
-  const key = req.headers["x-admin-key"];
-  if (key !== ADMIN_KEY) {
-    return res.status(401).json({ message: "Unauthorized" });
-  }
-  next();
-}
-
-// ===== Get all bookings (Protected) =====
 app.get("/bookings", requireAdmin, (req, res) => {
   db.all("SELECT * FROM bookings ORDER BY id DESC", (err, rows) => {
     if (err) return res.status(500).json({ message: "DB error" });
@@ -82,35 +66,12 @@ app.get("/bookings", requireAdmin, (req, res) => {
   });
 });
 
-// ===== Delete booking by id (Protected) =====
 app.delete("/bookings/:id", requireAdmin, (req, res) => {
-  const { id } = req.params;
-
-  db.run("DELETE FROM bookings WHERE id = ?", [id], function (err) {
+  db.run("DELETE FROM bookings WHERE id = ?", [req.params.id], function (err) {
     if (err) return res.status(500).json({ message: "DB error" });
-
-    if (this.changes === 0) {
-      return res.status(404).json({ message: "Booking not found", id });
-    }
-
-    res.json({ success: true, deleted: this.changes, id });
+    if (this.changes === 0) return res.status(404).json({ message: "Booking not found" });
+    res.json({ success: true });
   });
 });
 
-// ===== 404 Handler =====
-app.use((req, res) => {
-  res.status(404).json({
-    message: "Route not found",
-    method: req.method,
-    path: req.path,
-  });
-});
-
-// ===== Listen (محلي + نشر) =====
-const PORT = process.env.PORT || 5000;
-
-app.listen(PORT, "0.0.0.0", () => {
-  console.log("Backend running on port", PORT);
-});
-
-
+app.listen(PORT, () => console.log("Running on port:", PORT));

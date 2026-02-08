@@ -2,9 +2,10 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 export default function Booking() {
+  const API = import.meta.env.VITE_API_URL;
   const navigate = useNavigate();
-  const [service, setService] = useState(null);
 
+  const [service, setService] = useState(null);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [date, setDate] = useState("");
@@ -25,7 +26,7 @@ export default function Booking() {
     try {
       setLoading(true);
 
-      await fetch("http://localhost:5000/bookings", {
+      await fetch(`${API}/bookings`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -41,8 +42,8 @@ export default function Booking() {
 
       navigate("/confirm");
     } catch (err) {
-      alert("صار خطأ أثناء الحفظ");
       console.error(err);
+      alert("صار خطأ أثناء الحفظ");
     } finally {
       setLoading(false);
     }
@@ -65,18 +66,12 @@ export default function Booking() {
       <form className="form" onSubmit={submit}>
         <label>
           الاسم
-          <input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
+          <input value={name} onChange={(e) => setName(e.target.value)} />
         </label>
 
         <label>
           رقم الجوال
-          <input
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-          />
+          <input value={phone} onChange={(e) => setPhone(e.target.value)} />
         </label>
 
         <div className="two">
